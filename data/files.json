@@ -1,13 +1,38 @@
 [
     {
-        "name": "sql-dbTable",
+        "name": "Physics Notes",
         "category": "School",
-        "file": "sql-dbTable.txt",
-        "size": "1.1k"
+        "file": "Physics.pdf",
+        "size": "4 MB"
     },
     {
-        "name": "sqlPythonInterface",
+        "name": "Math Homework",
         "category": "School",
-        "file": "sqlPythonInterface.py",
-        "size": "1.6k"
+        "file": "MathHomework.pdf",
+        "size": "2 MB"
+    },
+    {
+        "name": "Vacation Photo",
+        "category": "Personal",
+        "file": "vacation.jpg",
+        "size": "3.5 MB"
+    },
+    {
+        "name": "Project Report",
+        "category": "Work",
+        "file": "ProjectReport.pdf",
+        "size": "6 MB"
+    },
+    {
+        "name": "Favourite Song",
+        "category": "Media",
+        "file": "song.mp3",
+        "size": "5 MB"
+    },
+    {
+        "name": "Demo Video",
+        "category": "Media",
+        "file": "demo.mp4",
+        "size": "25 MB"
     }
+]
