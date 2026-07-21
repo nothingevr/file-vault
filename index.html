@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Vault</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+        <div class="login-box">
+            <div class="lock-icon">🔒</div>
+            <h1>File Vault</h1>
+            <p>Enter password to access your files</p>
+            <form id="login-form">
+                <input type="password" id="password-input" placeholder="Password" autocomplete="off">
+                <button type="submit">Unlock</button>
+            </form>
+            <p id="error-msg" class="error-msg">Wrong password. Try again.</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP (hidden until login) -->
+    <div id="app" class="hidden">
+
+        <header>
+            <div class="header-inner">
+                <h1>🔐 File Vault</h1>
+                <div class="header-right">
+                    <input type="text" id="search" placeholder="Search files...">
+                    <button id="logout-btn">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+
+            <!-- Category filter buttons -->
+            <div id="category-bar">
+                <!-- Built dynamically from files.json -->
+            </div>
+
+            <!-- File cards grid -->
+            <div id="file-grid">
+                <!-- Built dynamically from files.json -->
+            </div>
+
+            <!-- Shown when nothing matches search -->
+            <div id="no-results" class="hidden">
+                <p>No files found.</p>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+</html>

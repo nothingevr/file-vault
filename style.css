@@ -1,0 +1,366 @@
+/* ===========================
+   RESET
+=========================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0f0f1a;
+    color: #e8e8f0;
+    min-height: 100vh;
+}
+
+/* ===========================
+   LOGIN SCREEN
+=========================== */
+#login-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+}
+
+.login-box {
+    background: #1e1e32;
+    border: 1px solid #2e2e4e;
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.lock-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.login-box h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #ffffff;
+}
+
+.login-box p {
+    color: #9090b0;
+    margin-bottom: 28px;
+    font-size: 0.95rem;
+}
+
+.login-box input {
+    width: 100%;
+    padding: 14px 16px;
+    background: #12121f;
+    border: 1px solid #2e2e4e;
+    border-radius: 8px;
+    color: #e8e8f0;
+    font-size: 1rem;
+    outline: none;
+    margin-bottom: 14px;
+    transition: border-color 0.2s;
+}
+
+.login-box input:focus {
+    border-color: #7c5cfc;
+}
+
+.login-box button {
+    width: 100%;
+    padding: 14px;
+    background: #7c5cfc;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.login-box button:hover {
+    background: #9179ff;
+}
+
+.login-box button:active {
+    transform: scale(0.98);
+}
+
+.error-msg {
+    color: #f87171;
+    margin-top: 14px;
+    font-size: 0.9rem;
+}
+
+/* ===========================
+   HEADER
+=========================== */
+header {
+    background: #1a1a2e;
+    border-bottom: 1px solid #2e2e4e;
+    padding: 0 24px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+header h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#search {
+    padding: 9px 14px;
+    background: #12121f;
+    border: 1px solid #2e2e4e;
+    border-radius: 8px;
+    color: #e8e8f0;
+    font-size: 0.9rem;
+    outline: none;
+    width: 220px;
+    transition: border-color 0.2s;
+}
+
+#search:focus {
+    border-color: #7c5cfc;
+}
+
+#logout-btn {
+    padding: 9px 18px;
+    background: transparent;
+    border: 1px solid #f87171;
+    border-radius: 8px;
+    color: #f87171;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+#logout-btn:hover {
+    background: rgba(248, 113, 113, 0.1);
+}
+
+/* ===========================
+   CONTAINER
+=========================== */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ===========================
+   CATEGORY BAR
+=========================== */
+#category-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.cat-btn {
+    padding: 7px 18px;
+    background: #1e1e32;
+    border: 1px solid #2e2e4e;
+    border-radius: 100px;
+    color: #9090b0;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cat-btn:hover {
+    color: #e8e8f0;
+    border-color: #9090b0;
+}
+
+.cat-btn.active {
+    background: rgba(124, 92, 252, 0.15);
+    border-color: #7c5cfc;
+    color: #a78bfa;
+}
+
+/* ===========================
+   FILE GRID
+=========================== */
+#file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+/* ===========================
+   FILE CARD
+=========================== */
+.file-card {
+    background: #1e1e32;
+    border: 1px solid #2e2e4e;
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.file-card:hover {
+    transform: translateY(-3px);
+    border-color: #7c5cfc;
+    box-shadow: 0 8px 24px rgba(124, 92, 252, 0.15);
+}
+
+.card-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+/* File type icon circle */
+.file-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.file-icon.pdf    { background: rgba(239,68,68,0.15); }
+.file-icon.image  { background: rgba(52,211,153,0.15); }
+.file-icon.video  { background: rgba(168,85,247,0.15); }
+.file-icon.audio  { background: rgba(251,191,36,0.15); }
+.file-icon.doc    { background: rgba(59,130,246,0.15); }
+.file-icon.zip    { background: rgba(249,115,22,0.15); }
+.file-icon.other  { background: rgba(156,163,175,0.15); }
+
+.card-info {
+    overflow: hidden;
+}
+
+.card-info h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+
+.card-meta {
+    font-size: 0.78rem;
+    color: #6060a0;
+}
+
+.card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.category-tag {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    background: #12121f;
+    border: 1px solid #2e2e4e;
+    border-radius: 100px;
+    color: #9090b0;
+}
+
+/* Download button */
+.download-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: rgba(124, 92, 252, 0.15);
+    border: 1px solid rgba(124, 92, 252, 0.4);
+    border-radius: 8px;
+    color: #a78bfa;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.download-btn:hover {
+    background: rgba(124, 92, 252, 0.3);
+    border-color: #7c5cfc;
+}
+
+/* ===========================
+   NO RESULTS
+=========================== */
+#no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6060a0;
+    font-size: 1rem;
+}
+
+/* ===========================
+   UTILITY
+=========================== */
+.hidden {
+    display: none !important;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+@media (max-width: 600px) {
+    .header-inner {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 12px 0;
+        gap: 10px;
+    }
+
+    #search {
+        width: 100%;
+    }
+
+    .header-right {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #logout-btn {
+        text-align: center;
+    }
+
+    .login-box {
+        margin: 16px;
+        padding: 32px 20px;
+    }
+
+    .container {
+        padding: 16px;
+    }
+}
