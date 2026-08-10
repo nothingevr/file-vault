@@ -1,1 +1,715 @@
-CREATE DATABASE school; USE school; CREATE TABLE student(RollNo INT PRIMARY KEY,Name VARCHAR(30),Class VARCHAR(10),Gender CHAR(1)); INSERT INTO student VALUES (1,'Adarsh','12A','M'),(2,'Rahul','12A','M'),(3,'Priya','12A','F'),(4,'Sneha','12B','F'),(5,'Aman','12B','M'),(6,'Riya','12A','F'),(7,'Arjun','12B','M'),(8,'Neha','12A','F'),(9,'Karan','12B','M'),(10,'Simran','12A','F'),(11,'Vikas','12C','M'),(12,'Pooja','12C','F'),(13,'Rohan','12A','M'),(14,'Anjali','12B','F'),(15,'Yash','12C','M'),(16,'Kriti','12A','F'),(17,'Harsh','12B','M'),(18,'Isha','12C','F'),(19,'Nikhil','12A','M'),(20,'Muskan','12B','F'); CREATE TABLE marks(RollNo INT,English INT,Physics INT,Chemistry INT,Maths INT,Computer INT); INSERT INTO marks VALUES (1,88,91,90,95,99),(2,75,82,78,80,85),(3,92,89,94,90,96),(4,81,85,80,79,88),(5,69,72,74,70,76),(6,95,94,96,98,100),(7,78,80,79,82,84),(8,86,90,88,91,93),(9,67,70,72,69,71),(10,90,92,91,94,95),(11,72,75,73,78,80),(12,89,87,90,88,91),(13,76,79,81,77,82),(14,91,93,92,94,96),(15,84,82,85,83,86),(16,97,98,99,100,99),(17,65,68,70,66,69),(18,88,86,87,89,90),(19,79,81,80,82,83),(20,93,95,94,96,97);
+I am building a DIY 3D object scanner using an Arduino Uno. I want help developing the project step-by-step, starting with testing each component individually and eventually combining everything into a working 3D scanner that outputs XYZ point-cloud data / CSV.
+
+PROJECT GOAL
+------------
+The goal is to scan a physical object and create a 3D point cloud.
+
+The object will rotate around its vertical axis while an ultrasonic sensor mounted on a servo tilts upward/downward to scan the object's height.
+
+The final desired data should eventually look something like:
+
+rotation_angle, tilt_angle, distance
+0,0,12.5
+0,1,12.4
+...
+1,0,12.6
+...
+
+and then be converted into:
+
+x,y,z
+
+and saved to a CSV such as:
+
+points.csv
+
+The final XYZ data can then be used by Python to visualize/reconstruct the object as a 3D point cloud.
+
+HARDWARE
+--------
+I currently have:
+
+1. Arduino Uno Rev3
+2. HC-SR04 ultrasonic distance sensor
+3. SG90 micro-servo motor
+4. L293D dual H-bridge motor driver
+5. 12 V geared DC motor
+6. 9 V 1 A switching wall power supply
+
+Important:
+- The DC motor does NOT have an encoder.
+- The L293D is only a motor driver; it does NOT contain an encoder.
+- Therefore the Arduino cannot directly know the exact rotation angle of the object.
+- We agreed to use a workaround based on motor rotation timing/speed estimation instead of an encoder.
+- The 12 V motor is being powered from a 9 V adapter, so it will likely run slower than its rated 12 V speed.
+
+MECHANICAL SETUP
+----------------
+The ultrasonic sensor is mounted on the SG90 servo.
+
+The sensor is positioned at approximately the BASE/BOTTOM LEVEL of the object.
+
+The sensor should NOT scan downward below the object's base.
+
+The servo should only tilt upward.
+
+The intended servo scan range is:
+
+0° = horizontal/base direction
+1°
+2°
+...
+30° = maximum upward tilt
+
+So the sensor scans:
+
+0° → 30° upward
+
+and can return:
+
+30° → 0°
+
+There is NO left-right scanning with the servo.
+
+The object itself is rotated left/right around its vertical axis by the DC motor.
+
+Thus:
+- SG90 = vertical scanning axis
+- DC motor = object rotation axis
+- HC-SR04 = distance measurement
+
+CURRENT ARDUINO PIN ASSIGNMENTS
+--------------------------------
+HC-SR04:
+TRIG = Arduino D8
+ECHO = Arduino D9
+
+SG90:
+Signal = Arduino D10
+
+L293D motor driver:
+The proposed pins for one motor are:
+ENA = Arduino D5
+IN1 = Arduino D6
+IN2 = Arduino D7
+
+These motor-driver pins have been proposed but the exact wiring should be verified against the actual L293D board/module I have before connecting it.
+
+HC-SR04 CURRENT CODE
+--------------------
+The distance measurement function currently used is:
+
+float getDistance() {
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  long duration = pulseIn(echoPin, HIGH, 30000);
+
+  if (duration == 0)
+    return -1;
+
+  return duration * 0.0343 / 2.0;
+}
+
+The HC-SR04 was tested successfully and gives readings such as:
+
+Distance: 20.14 cm
+Distance: 15.72 cm
+Distance: 10.32 cm
+
+SERVO CURRENT TEST/SCAN
+-----------------------
+The SG90 is connected to D10.
+
+The servo is being treated as:
+0° = horizontal/base position
+30° = maximum upward scan
+
+A suitable basic test is:
+
+#include <Servo.h>
+
+Servo scannerServo;
+
+const int servoPin = 10;
+
+void setup() {
+  scannerServo.attach(servoPin);
+}
+
+void loop() {
+  scannerServo.write(0);
+  delay(1000);
+
+  scannerServo.write(10);
+  delay(1000);
+
+  scannerServo.write(20);
+  delay(1000);
+
+  scannerServo.write(30);
+  delay(1000);
+}
+
+The actual scanner should preferably use 1° increments:
+
+0°, 1°, 2°, 3° ... 30°
+
+rather than 2° increments, because I want more scan points/detail.
+
+HC-SR04 + SERVO SCANNER
+-----------------------
+The current basic scanner logic is:
+
+for (int angle = 0; angle <= 30; angle += 1) {
+
+    scannerServo.write(angle);
+    delay(80);
+
+    float distance = getDistance();
+
+    if (distance > 0 && distance <= MAX_DISTANCE) {
+        Serial.print(angle);
+        Serial.print(",");
+        Serial.println(distance, 2);
+    }
+}
+
+Then return:
+
+for (int angle = 30; angle >= 0; angle -= 1) {
+
+    scannerServo.write(angle);
+    delay(80);
+
+    float distance = getDistance();
+
+    if (distance > 0 && distance <= MAX_DISTANCE) {
+        Serial.print(angle);
+        Serial.print(",");
+        Serial.println(distance, 2);
+    }
+}
+
+The serial baud rate currently used is:
+
+Serial.begin(9600);
+
+Earlier, garbled serial output occurred because the Serial Monitor baud rate did not match the Arduino baud rate. The solution was to set Serial Monitor to 9600 when using Serial.begin(9600).
+
+IMPORTANT ANGLE CORRECTION
+--------------------------
+There was confusion earlier about servo angles.
+
+The correct assumption for THIS PROJECT is:
+
+scannerServo.write(0) = horizontal/base position
+
+scannerServo.write(30) = 30° upward
+
+Therefore the code should NOT use:
+
+angle - 90
+
+The correct output is simply:
+
+Serial.print(angle);
+
+For example:
+
+0,12.50
+1,12.40
+2,12.30
+...
+30,15.20
+
+Earlier, code using:
+
+Serial.print(angle - 90);
+
+produced values like:
+
+-90,29.58
+-89,29.33
+-88,29.58
+
+That was incorrect because the servo was actually being commanded from 0° to 30°.
+
+OBJECT DISTANCE LIMIT
+---------------------
+The object is approximately 20 cm away from the ultrasonic sensor.
+
+I want the scanner to ignore objects farther than 20 cm.
+
+This does NOT physically limit the HC-SR04's sensing range. Instead, Arduino should ignore measurements above 20 cm.
+
+Use:
+
+const float MAX_DISTANCE = 20.0;
+
+and:
+
+if (distance > 0 && distance <= MAX_DISTANCE)
+
+So:
+
+18 cm -> record
+19.5 cm -> record
+20 cm -> record
+20.1 cm -> ignore
+25 cm -> ignore
+40 cm -> ignore
+
+The goal is to prevent distant background objects from becoming part of the scan.
+
+EXAMPLE OUTPUT
+--------------
+Example output:
+
+angle,distance
+9,10.60
+9,10.60
+11,11.06
+8,10.44
+
+Interpretation:
+
+9,10.60
+means:
+servo tilt = 9°
+distance = 10.60 cm
+
+The duplicate angles happened because the servo was scanning upward and then scanning back downward. For the final scanner, the data acquisition strategy still needs to be designed carefully.
+
+MOTOR + L293D
+-------------
+The L293D is a motor driver.
+
+It acts as the interface between the Arduino and the DC motor.
+
+Conceptually:
+
+Arduino -> control signals -> L293D -> motor power -> DC motor
+
+The Arduino cannot safely power the 12 V DC motor directly from an Arduino GPIO pin.
+
+The L293D can control:
+- motor ON/OFF
+- direction
+- approximate speed using PWM
+
+Example:
+
+ENA = PWM speed control
+IN1/IN2 = direction
+
+PWM range:
+
+0 = stopped
+255 = maximum PWM
+
+Example motor control:
+
+digitalWrite(IN1, HIGH);
+digitalWrite(IN2, LOW);
+analogWrite(ENA, 150);
+
+The motor can then be stopped by:
+
+analogWrite(ENA, 0);
+
+Direction can be reversed by changing IN1/IN2.
+
+IMPORTANT:
+The exact L293D wiring depends on whether I have a bare L293D IC or an L293D module/board. Verify the physical module/pin labels before giving final wiring instructions.
+
+POWER
+------
+I have a 9 V 1 A switching wall adapter.
+
+The motor is rated 12 V.
+
+Therefore the motor may run slower/weaker than its rated speed when powered from 9 V.
+
+The motor must NOT be powered directly from an Arduino GPIO.
+
+The motor power should go through the L293D.
+
+Arduino ground and motor-driver ground must share a common ground.
+
+The SG90 may cause Arduino resets/jitter if powered heavily from the Arduino 5 V rail. If necessary, use a separate regulated 5 V supply for the servo and connect grounds together.
+
+NO ENCODER
+----------
+The motor has NO encoder.
+
+The L293D does NOT have an encoder.
+
+Therefore Arduino cannot directly know:
+
+"I have rotated exactly 1°"
+
+or:
+
+"I have rotated exactly 90°"
+
+This is the main limitation.
+
+We decided to use a workaround.
+
+MOTOR SPEED CALIBRATION WORKAROUND
+----------------------------------
+We can experimentally determine how long the rotating platform takes to make one full revolution.
+
+For example, if:
+
+1 full revolution = 5 seconds
+
+then:
+
+360° / 5 s = 72°/s
+
+and:
+
+5000 ms / 360 = approximately 13.89 ms/degree
+
+Thus:
+
+1° ≈ 13.9 ms
+10° ≈ 139 ms
+90° ≈ 1.25 s
+180° ≈ 2.5 s
+360° ≈ 5 s
+
+Arduino can estimate rotation angle from elapsed time:
+
+rotation_angle =
+(elapsed_time / revolution_time) * 360
+
+For example, if revolution time = 5000 ms:
+
+at 0 ms -> 0°
+at 500 ms -> 36°
+at 1000 ms -> 72°
+at 2500 ms -> 180°
+at 5000 ms -> 360°
+
+However, this is only an ESTIMATE.
+
+DC motor speed is not perfectly constant because of:
+- load
+- friction
+- motor voltage
+- battery/power supply
+- object weight
+- mechanical resistance
+
+Therefore the estimated rotation angle can drift.
+
+For a school-project prototype this workaround is acceptable if the motor speed/load is kept consistent and revolution time is calibrated carefully.
+
+MOTOR CALIBRATION
+-----------------
+A physical mark can be placed on the rotating platform and another fixed mark on the base.
+
+Run the motor at a fixed PWM value.
+
+For example:
+
+PWM = 150
+
+Then measure how long one complete revolution takes.
+
+Repeat several times and average the measurements.
+
+Example:
+
+Trial 1 = 4.8 s
+Trial 2 = 4.9 s
+Trial 3 = 4.7 s
+
+Average ≈ 4.8 s/revolution
+
+This gives the approximate motor rotation period.
+
+A simple Arduino timer can use millis() to measure elapsed time, but Arduino cannot automatically know when the revolution ends without an encoder/sensor. The initial calibration can therefore be done by observing the physical reference mark.
+
+WHY NOT ROTATE 10° AT A TIME?
+-----------------------------
+I specifically do NOT want only 10° rotation steps because that would leave too many missing points and produce a coarse 3D model.
+
+I prefer approximately 1° or denser angular sampling.
+
+However, with a DC motor and no encoder, physically stopping at every 1° is difficult.
+
+Also, if we do:
+
+rotation 0° -> full vertical scan 0–30°
+rotation 1° -> full vertical scan 0–30°
+rotation 2° -> full vertical scan 0–30°
+
+the motor would have to wait while 31 ultrasonic measurements are taken. This makes the process very slow and complicated.
+
+CONTINUOUS SCANNING IDEA
+------------------------
+The proposed better approach is:
+
+- Rotate the object continuously.
+- Sweep the SG90 continuously between 0° and 30°.
+- Take ultrasonic measurements continuously.
+- Record the timestamp of each measurement.
+- Estimate the object's rotation angle from elapsed time.
+- Later use the estimated rotation angle + servo tilt angle + distance to calculate XYZ.
+
+Conceptually:
+
+Motor:
+continuous rotation
+
+Servo:
+0° -> 30° -> 0° -> 30° -> ...
+
+HC-SR04:
+continuous measurements
+
+Each measurement becomes:
+
+time, rotation_angle, tilt_angle, distance
+
+For example:
+
+time,rotation,tilt,distance
+0,0.00,0,19.82
+80,5.76,1,19.70
+160,11.52,2,19.61
+240,17.28,3,19.55
+
+The rotation angle is estimated using:
+
+rotation_angle =
+(elapsed_time / revolution_time) * 360
+
+This gives many points without forcing the motor to stop at every degree.
+
+IMPORTANT LIMITATION OF CONTINUOUS METHOD
+------------------------------------------
+Because there is no encoder, the rotation angle remains approximate.
+
+If the assumed revolution time is 5 seconds but the actual motor speed changes, the estimated angle will drift.
+
+Possible improvements later:
+- use a fixed PWM
+- use the same object/load
+- average multiple revolution-time measurements
+- add a physical reference sensor later if needed
+- ideally add a rotary encoder in the future
+
+3D COORDINATE CONVERSION
+------------------------
+Once we have:
+
+r = distance from HC-SR04
+theta = vertical servo tilt angle
+phi = object rotation angle
+
+we can convert the polar/cylindrical-style measurement to Cartesian XYZ.
+
+Assuming:
+- sensor is at the coordinate origin
+- 0° tilt points horizontally
+- positive tilt points upward
+
+Approximate equations:
+
+X = r * cos(theta) * cos(phi)
+Y = r * cos(theta) * sin(phi)
+Z = r * sin(theta)
+
+Angles must be converted from degrees to radians when using Python's math.sin/cos.
+
+Example:
+
+vertical tilt = 10°
+distance = 10.60 cm
+rotation angle = 90°
+
+Then approximately:
+
+X ≈ 0 cm
+Y ≈ 10.44 cm
+Z ≈ 1.84 cm
+
+The final CSV should eventually look like:
+
+rotation,tilt,distance,x,y,z
+0,0,12.50,12.50,0,0
+0,1,12.40,12.40,0,0.22
+...
+90,10,10.60,0,10.44,1.84
+
+Then Python can visualize x,y,z as a 3D point cloud.
+
+IMPORTANT GEOMETRY CONSIDERATION
+--------------------------------
+The exact XYZ equations depend on the physical coordinate system and the exact orientation/location of the ultrasonic sensor relative to the object's rotation axis.
+
+The scanner should eventually be calibrated for:
+- sensor-to-rotation-axis distance
+- sensor height
+- servo zero angle
+- object center
+- direction of positive rotation
+- maximum scan distance
+
+The simple equations above assume the sensor is at the coordinate origin. For a real scanner, offsets may need to be added.
+
+CURRENT DEVELOPMENT PLAN
+------------------------
+Do NOT combine everything immediately.
+
+Develop and test in stages.
+
+STAGE 1:
+Test HC-SR04 alone.
+
+Expected output:
+
+Distance: 20.14 cm
+Distance: 15.72 cm
+Distance: 10.32 cm
+
+STAGE 2:
+Test SG90 alone.
+
+Verify:
+0° = horizontal/base
+10°
+20°
+30° = maximum upward
+
+STAGE 3:
+Test L293D + DC motor alone.
+
+Verify:
+- motor starts
+- motor stops
+- motor reverses
+- PWM speed control works
+
+STAGE 4:
+Calibrate motor.
+
+Choose a fixed PWM value, e.g. 150.
+
+Measure actual time for one complete rotation using a physical mark.
+
+Repeat several times and average.
+
+STAGE 5:
+Combine HC-SR04 + SG90.
+
+Scan:
+0° -> 30°
+
+using 1° steps.
+
+Record:
+
+angle,distance
+
+Ignore distances > 20 cm.
+
+STAGE 6:
+Combine motor + HC-SR04 + servo.
+
+Run motor continuously.
+
+Sweep servo continuously.
+
+Record:
+
+time,rotation,tilt,distance
+
+Stop after one complete estimated revolution.
+
+STAGE 7:
+Python processing.
+
+Read the Arduino data.
+
+Calculate estimated rotation angle if not already calculated.
+
+Convert:
+
+rotation + tilt + distance
+
+into:
+
+x,y,z
+
+Save:
+
+points.csv
+
+STAGE 8:
+Visualize the 3D point cloud using Python, e.g. matplotlib/Open3D/PyVista if appropriate.
+
+FINAL DESIRED ARCHITECTURE
+--------------------------
+
+              HC-SR04
+                 │
+                 │ distance
+                 ▼
+              SG90 servo
+              ↕ 0–30°
+                 │
+                 ▼
+          ┌──────────────┐
+          │    OBJECT    │
+          │              │
+          └──────────────┘
+                 ↻
+              DC MOTOR
+                 │
+               L293D
+                 │
+              Arduino
+                 │
+                 ▼
+              Serial
+                 │
+                 ▼
+              Python
+                 │
+                 ▼
+            XYZ point cloud
+                 │
+                 ▼
+             points.csv
+
+IMPORTANT PROJECT REQUIREMENTS
+------------------------------
+1. Keep vertical servo scan from 0° to 30° only.
+2. Do not scan downward.
+3. Do not use angle - 90.
+4. 0° is the horizontal/base position for the servo in this setup.
+5. Use 1° vertical increments where practical.
+6. Ignore ultrasonic measurements greater than 20 cm.
+7. Object is approximately 20 cm from the sensor.
+8. Object rotates using a 12 V geared DC motor.
+9. Motor is controlled through an L293D.
+10. Motor has no encoder.
+11. Use timing-based rotation estimation as the current workaround.
+12. Prefer dense measurements rather than 10° rotation increments.
+13. Eventually generate XYZ coordinates and points.csv.
+14. Test each component individually before combining.
+15. Verify actual L293D module pinout before final wiring.
+16. Do not power the DC motor directly from Arduino.
+17. Maintain common ground between Arduino and motor-driver power system.
+18. The 9 V supply is below the motor's 12 V rating, so motor speed will be lower than its rated speed.
+19. The final goal is a usable school-project-style 3D scanner, not encoder-level industrial accuracy.
