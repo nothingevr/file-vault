@@ -1,45 +1,50 @@
 [
-    {
-        "name": "sqldbTable",
-        "category": "School",
-        "file": "sqldbTable.txt",
-        "size": "1.1k"
-    },
-    {
-        "name": "sqlPythonInterface",
-        "category": "School",
-        "file": "sqlPythonInterface.py",
-        "size": "1.6k"
-    },
-    {
-         "name": "compare2",
-            "category": "School",
-            "file": "compare2.py",
-            "size": "3.7k"
-    },
-    {
-             "name": "compare",
-             "category": "School",
-             "file": "compare.py",
-             "size": "2.0k"
-     },
-    {
-             "name": "model3d",
-             "category": "School",
-             "file": "model3d.py",
-             "size": "2.1k"
-     },    
-    {
-             "name": "toview",
-             "category": "School",
-             "file": "toview.py",
-             "size": "1.2k"
-     },
-    {
-             "name": "xyzTocsv",
-             "category": "School",
-             "file": "xyzTocsv.py",
-             "size": "976"
-     }
-    
+  {
+    "name": "sqldbTable",
+    "category": "School",
+    "file": "sqldbTable.txt",
+    "size": "1.1k"
+  },
+  {
+    "name": "sqlPythonInterface",
+    "category": "School",
+    "file": "sqlPythonInterface.py",
+    "size": "1.6k"
+  },
+  {
+    "name": "compare2",
+    "category": "School",
+    "file": "compare2.py",
+    "size": "3.7k"
+  },
+  {
+    "name": "compare",
+    "category": "School",
+    "file": "compare.py",
+    "size": "2.0k"
+  },
+  {
+    "name": "model3d",
+    "category": "School",
+    "file": "model3d.py",
+    "size": "2.1k"
+  },
+  {
+    "name": "toview",
+    "category": "School",
+    "file": "toview.py",
+    "size": "1.2k"
+  },
+  {
+    "name": "xyzTocsv",
+    "category": "School",
+    "file": "xyzTocsv.py",
+    "size": "976"
+  },
+  {
+    "name": "practicalQuestions",
+    "category": "School",
+    "file": "Practical_Programs_List_2026_27.pdf",
+    "size": "754.6k"
+  }
 ]
