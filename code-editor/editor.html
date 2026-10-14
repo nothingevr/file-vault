@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Code Editor — Multi-File & Python IntelliSense</title>
+    
+    <!-- Editor Stylesheet -->
+    <link rel="stylesheet" href="editor.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- HIDDEN INPUTS FOR MULTI-FILE & FOLDER IMPORT -->
+    <input type="file" id="file-input" multiple style="display: none;">
+    <input type="file" id="folder-input" webkitdirectory style="display: none;">
+
+    <div id="app-layout">
+
+        <!-- TOP HEADER & TOOLBAR -->
+        <header id="top-header">
+            <div class="brand-section">
+                <div class="brand-icon" title="Minimal Code Editor">⚡</div>
+                <div class="brand-title">
+                    <span>Code Studio</span>
+                    <span class="brand-badge">Python IDE</span>
+                </div>
+            </div>
+
+            <!-- Main Actions -->
+            <div class="toolbar-actions">
+                <button class="tool-btn" id="btn-open-files" title="Import multiple code files (Supports .py, .js, .html, etc.)">
+                    <span>📁</span>
+                    <span>Import Files</span>
+                </button>
+                <button class="tool-btn" id="btn-open-folder" title="Import an entire folder of code files">
+                    <span>📂</span>
+                    <span>Import Folder</span>
+                </button>
+                <button class="tool-btn" id="btn-new-file" title="Create a new code file (Ctrl+N)">
+                    <span>＋</span>
+                    <span>New File</span>
+                </button>
+                
+                <div class="tool-divider"></div>
+
+                <button class="tool-btn run-btn" id="btn-run-code" title="Run Python code in browser via Pyodide (Ctrl+Enter)">
+                    <span>▶</span>
+                    <span>Run</span>
+                </button>
+
+                <div class="tool-divider"></div>
+
+                <button class="tool-btn" id="btn-save-file" title="Save file to workspace (Ctrl+S)">
+                    <span>💾</span>
+                    <span>Save</span>
+                </button>
+                <button class="tool-btn" id="btn-download-file" title="Download active file">
+                    <span>⬇</span>
+                    <span>Download</span>
+                </button>
+                <button class="tool-btn" id="btn-export-zip" title="Export entire workspace as a ZIP package">
+                    <span>📦</span>
+                    <span>Export ZIP</span>
+                </button>
+            </div>
+
+            <!-- Right Utilities -->
+            <div class="header-right">
+                <button class="tool-btn tool-btn-icon" id="btn-toggle-zen" title="Toggle Zen / Distraction-free Mode (Ctrl+B)">
+                    <span>👁</span>
+                </button>
+                <button class="tool-btn tool-btn-icon" id="btn-settings" title="Editor Settings">
+                    <span>⚙</span>
+                </button>
+                <a href="index.html" class="tool-btn" style="text-decoration:none;" title="Return to File Vault">
+                    <span>🔐</span>
+                    <span>File Vault</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- MAIN WORKSPACE -->
+        <div id="main-workspace">
+
+            <!-- SIDEBAR FILE EXPLORER -->
+            <aside id="sidebar">
+                <!-- Drop overlay for drag & drop -->
+                <div class="sidebar-drop-overlay" id="sidebar-drop-overlay">
+                    <span style="font-size: 28px;">📥</span>
+                    <span>Drop code files to import</span>
+                </div>
+
+                <div class="sidebar-header">
+                    <span>Workspace</span>
+                    <span id="file-count-badge" class="breadcrumb-badge">0 files</span>
+                    <div class="sidebar-header-actions">
+                        <button class="icon-action-btn" id="sidebar-new-file-btn" title="New File">＋</button>
+                        <button class="icon-action-btn" id="sidebar-import-btn" title="Import Files">📁</button>
+                        <button class="icon-action-btn" id="sidebar-collapse-btn" title="Collapse Sidebar">◀</button>
+                    </div>
+                </div>
+
+                <!-- Search / Filter Files -->
+                <div class="sidebar-search-box">
+                    <input type="text" id="sidebar-search-input" class="sidebar-search-input" placeholder="Search files... (Ctrl+P)">
+                </div>
+
+                <!-- File List -->
+                <div class="file-tree-container" id="file-tree">
+                    <!-- Built dynamically by editor.js -->
+                </div>
+            </aside>
+
+            <!-- EDITOR AREA -->
+            <main id="editor-area">
+
+                <!-- TABS BAR -->
+                <div id="tab-bar">
+                    <div class="tab-list" id="tab-list">
+                        <!-- Populated dynamically with open files -->
+                    </div>
+                    <button class="new-tab-btn" id="btn-new-tab" title="New file">＋</button>
+                </div>
+
+                <!-- BREADCRUMBS BAR -->
+                <div id="breadcrumbs-bar">
+                    <div class="breadcrumb-path">
+                        <span>Workspace</span>
+                        <span>/</span>
+                        <span id="current-file-path">main.py</span>
+                    </div>
+                    <div class="breadcrumb-controls">
+                        <span class="breadcrumb-badge" id="current-lang-badge">PYTHON</span>
+                        <span style="font-size: 11px; opacity: 0.7;">Ctrl+Space for Autocomplete | Ctrl+Enter to Run</span>
+                    </div>
+                </div>
+
+                <!-- MONACO EDITOR -->
+                <div id="monaco-container"></div>
+
+                <!-- EMPTY STATE (WHEN NO TABS OPEN) -->
+                <div id="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div class="empty-state-title">No Files Open</div>
+                    <div class="empty-state-desc">
+                        Select a file from the workspace sidebar, create a new one, or drag & drop files here to start coding.
+                    </div>
+                    <div class="empty-state-actions">
+                        <button class="tool-btn primary" id="empty-create-btn">＋ Create New File</button>
+                        <button class="tool-btn" id="empty-import-btn">📁 Import Files</button>
+                    </div>
+                </div>
+
+                <!-- BOTTOM OUTPUT / CONSOLE PANEL -->
+                <div id="output-panel" class="hidden">
+                    <div class="panel-header">
+                        <div class="panel-header-left">
+                            <span>TERMINAL OUTPUT</span>
+                            <span id="panel-status" class="panel-status-tag">Ready</span>
+                        </div>
+                        <div class="panel-header-right">
+                            <button class="icon-action-btn" id="btn-clear-panel" title="Clear Console">🧹</button>
+                            <button class="icon-action-btn" id="btn-close-panel" title="Close Panel">✕</button>
+                        </div>
+                    </div>
+                    <div class="panel-content" id="panel-output"></div>
+                </div>
+
+            </main>
+
+        </div>
+
+        <!-- BOTTOM STATUS BAR -->
+        <footer id="status-bar">
+            <div class="status-left">
+                <div class="status-item" id="status-pos">Ln 1, Col 1</div>
+                <div class="status-item" id="status-encoding">UTF-8</div>
+                <div class="status-item">Spaces: 4</div>
+            </div>
+            <div class="status-right">
+                <div class="status-item clickable" id="status-toggle-panel" title="Toggle Terminal Output (Ctrl+`)">
+                    <span>Terminal</span>
+                </div>
+                <div class="status-item" title="Python Auto-Complete & IntelliSense Active">
+                    <span class="status-indicator ready"></span>
+                    <span>IntelliSense: Python 3</span>
+                </div>
+                <div class="status-item" title="In-Browser Python WebAssembly Execution">
+                    <span class="status-indicator ready" id="status-py-dot"></span>
+                    <span id="status-py-runtime">Pyodide WASM</span>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- MODAL: NEW FILE -->
+    <div class="modal-backdrop" id="new-file-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <span>Create New File</span>
+                <button class="icon-action-btn" id="modal-close-new-file">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="new-file-name-input">Filename (e.g. script.py, utils.py, index.html)</label>
+                    <input type="text" id="new-file-name-input" class="form-input" placeholder="script.py" autocomplete="off">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="tool-btn" id="modal-cancel-new-file">Cancel</button>
+                <button class="tool-btn primary" id="modal-submit-new-file">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SETTINGS -->
+    <div class="modal-backdrop" id="settings-modal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <span>Editor Settings</span>
+                <button class="icon-action-btn" id="modal-close-settings">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="setting-theme">Theme</label>
+                    <select id="setting-theme" class="form-select">
+                        <option value="vs-dark">Visual Studio Dark</option>
+                        <option value="hc-black">High Contrast Dark</option>
+                        <option value="vs">Visual Studio Light</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="setting-font-size">Font Size (px)</label>
+                    <input type="number" id="setting-font-size" class="form-input" min="10" max="28" value="14">
+                </div>
+                <div class="form-group">
+                    <label for="setting-tab-size">Tab Size (spaces)</label>
+                    <select id="setting-tab-size" class="form-select">
+                        <option value="2">2 spaces</option>
+                        <option value="4" selected>4 spaces</option>
+                        <option value="8">8 spaces</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="setting-word-wrap">Word Wrap</label>
+                    <select id="setting-word-wrap" class="form-select">
+                        <option value="off">Off</option>
+                        <option value="on">On</option>
+                    </select>
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="setting-minimap" checked>
+                    <label for="setting-minimap" style="margin-bottom: 0;">Show Code Minimap</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="tool-btn" id="modal-cancel-settings">Cancel</button>
+                <button class="tool-btn primary" id="modal-save-settings">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: QUICK OPEN (CTRL+P) -->
+    <div class="modal-backdrop" id="quick-open-modal">
+        <div class="modal-dialog quick-open-dialog">
+            <input type="text" id="quick-open-input" class="quick-open-input" placeholder="Type filename to open..." autocomplete="off">
+            <div class="quick-open-results" id="quick-open-results"></div>
+        </div>
+    </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- DEPENDENCY LIBRARIES (CDN) -->
+    <!-- JSZip for exporting entire workspace as a zip -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- Pyodide for running Python code in the browser -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+
+    <!-- Monaco Editor Loader -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+
+    <!-- Python Autocomplete & IntelliSense Engine -->
+    <script src="python-intellisense.js"></script>
+
+    <!-- Editor Controller Logic -->
+    <script src="editor.js"></script>
+
+</body>
+</html>

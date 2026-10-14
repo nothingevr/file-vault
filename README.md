@@ -11,6 +11,7 @@ Password protected. No backend needed. No Cloudflare. No complexity.
 - After correct password, shows all your files as cards
 - Search and filter by category
 - Click Download to get any file
+- **⚡ Built-in Minimal Code Studio (`editor.html`)**: Multi-file code editor with tabbed interface, folder/multi-file imports, Python autocomplete (modules, functions, snippets), and in-browser Python runner.
 
 ---
 

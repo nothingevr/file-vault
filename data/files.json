@@ -52,5 +52,11 @@
     "category": "School",
     "file": "ScamShield.zip",
     "size": "172B"
+  },
+  {
+    "name": "CodeEditor",
+    "category": "School",
+    "file": "code-editor.zip",
+    "size": "174B"
   }
 ]

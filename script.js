@@ -163,6 +163,12 @@ function renderFiles(files) {
         var iconClass = getIconClass(file.file);
         var fileUrl = FILES_FOLDER + file.file;
 
+        var isCode = /\.(py|txt|json|sql|js|html|css|md|sh)$/i.test(file.file);
+        var editBtn = isCode ?
+            '<a class="edit-btn" href="editor.html?file=' + encodeURIComponent(file.file) + '" title="Open in Code Editor">' +
+                '⚡ Edit' +
+            '</a>' : '';
+
         card.innerHTML =
             '<div class="card-top">' +
                 '<div class="file-icon ' + iconClass + '">' + icon + '</div>' +
@@ -173,9 +179,12 @@ function renderFiles(files) {
             '</div>' +
             '<div class="card-bottom">' +
                 '<span class="category-tag">' + esc(file.category || 'Other') + '</span>' +
-                '<a class="download-btn" href="' + fileUrl + '" download="' + esc(file.file) + '">' +
-                    '⬇ Download' +
-                '</a>' +
+                '<div class="card-actions">' +
+                    editBtn +
+                    '<a class="download-btn" href="' + fileUrl + '" download="' + esc(file.file) + '">' +
+                        '⬇ Download' +
+                    '</a>' +
+                '</div>' +
             '</div>';
 
         fileGrid.appendChild(card);
